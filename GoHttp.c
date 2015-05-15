@@ -32,6 +32,14 @@ int current_socket;
 int connecting_socket;
 socklen_t addr_size;
 
+#ifdef DEBUG_ANDROID
+#include <android/log.h>
+#define LOG_TAG "gohttp"
+#define PRINT(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#else
+#define PRINT(...) fprintf(stdout, "%s\n", __VA_ARGS__)
+#endif
+
 static void daemonize(void)
 {
 	pid_t pid, sid;
@@ -350,7 +358,7 @@ int handleHttpGET(char *input)
 
 			if ( GetExtension(filename, extension) == -1 )
 			{
-				printf("File extension not existing");
+				PRINT("File extension not existing");
 
 				sendString("400 Bad Request\n", connecting_socket);
 
@@ -367,7 +375,7 @@ int handleHttpGET(char *input)
 
 			if ( mimeSupported != 1)
 			{
-				printf("Mime not supported");
+				PRINT("Mime not supported");
 
 				sendString("400 Bad Request\n", connecting_socket);
 
@@ -384,13 +392,13 @@ int handleHttpGET(char *input)
 			strcpy(path, wwwroot);
 
 			strcat(path, filename);		
-			printf("opening %s\n ",path);
+			PRINT("opening %s\n ",path);
 
 			fp = fopen(path, "rb");
 
 			if ( fp == NULL )
 			{
-				printf("Unable to open file");
+				PRINT("Unable to open file");
 
 				sendString("404 Not Found\n", connecting_socket);
 
@@ -407,7 +415,7 @@ int handleHttpGET(char *input)
 			contentLength = Content_Lenght(fp);
 			if (contentLength  < 0 )
 			{
-				printf("File size is zero");
+				PRINT("File size is zero");
 
 				free(filename);
 				free(mime);
@@ -422,7 +430,7 @@ int handleHttpGET(char *input)
 			// Send File Content //
 			sendHeader("200 OK", mime,contentLength, connecting_socket);
 
-printf("Sending file");
+PRINT("Sending file");
 
 			sendFile(fp, contentLength);
 
@@ -492,7 +500,7 @@ int receive(int socket)
 
 	if ((msgLen = recv(socket, buffer, BUFFER_SIZE, 0)) == -1)
 	{
-		printf("Error handling incoming request");
+		PRINT("Error handling incoming request");
 		return -1;
 	}
 
@@ -500,24 +508,24 @@ int receive(int socket)
 
 	if ( request == 1 )				// GET
 	{
-		printf("handleHttpGET\n");
+		PRINT("handleHttpGET\n");
 
 		handleHttpGET(buffer);
 	}
 	else if ( request == 2 )		// HEAD
 	{
-				printf(" request == 2 \n");
+				PRINT(" request == 2 \n");
 
 		// SendHeader();
 	}
 	else if ( request == 0 )		// POST
 	{
-		printf(" request == 0\n ");
+		PRINT(" request == 0\n ");
 		sendString("501 Not Implemented\n", connecting_socket);
 	}
 	else							// GARBAGE
 	{
-				printf(" 400 Bad Request\n");
+				PRINT(" 400 Bad Request\n");
 
 		sendString("400 Bad Request\n", connecting_socket);
 	}
@@ -619,22 +627,22 @@ void acceptConnection()
 
 void start()
 {
-	printf("createSocket starting\n");
+	PRINT("createSocket starting\n");
 	
 	createSocket();
-		printf("createSocket started\n");
+		PRINT("createSocket started\n");
 
 
-printf("bindSocket\n");
+PRINT("bindSocket\n");
 	bindSocket();
 
-printf("startListener\n");
+PRINT("startListener\n");
 
 	startListener();
 
 	while ( 1 )
 	{
-		printf("acceptConnection\n");
+		PRINT("acceptConnection\n");
 		acceptConnection();
 	}
 }
@@ -665,21 +673,21 @@ void init()
 	// Ensure that the configuration file is open
 	if (filePointer == NULL)
 	{
-		fprintf(stderr, "Can't open configuration file!\n");
+		PRINT("Can't open configuration file!\n");
 		exit(1);
 	}
 
 	// Get server root directory from configuration file
 	if (fscanf(filePointer, "%s %s", currentLine, wwwroot) != 2)
 	{
-		fprintf(stderr, "Error in configuration file on line 1!\n");
+		PRINT("Error in configuration file on line 1!\n");
 		exit(1);
 	}
 
 	// Get default port from configuration file
 	if (fscanf(filePointer, "%s %i", currentLine, &port) != 2)
 	{
-		fprintf(stderr, "Error in configuration file on line 2!\n");
+		PRINT("Error in configuration file on line 2!\n");
 		exit(1);
 	}
 
@@ -702,14 +710,14 @@ int main(int argc, char* argv[])
 		{
 			// Indicate that we want to jump over the next parameter
 			parameterCount++;
-			printf("Setting port to %i\n", atoi(argv[parameterCount]));
+			PRINT("Setting port to %i\n", atoi(argv[parameterCount]));
 			port = atoi(argv[parameterCount]);
 		}
 
 		// If flag -d is used, set deamon to TRUE;
 		else if (strcmp(argv[parameterCount], "-d") == 0)
 		{ 
-			printf("Setting deamon = TRUE");
+			PRINT("Setting deamon = TRUE");
 			deamon = TRUE;
 		}
 
@@ -717,25 +725,25 @@ int main(int argc, char* argv[])
 		{
 			// Indicate that we want to jump over the next parameter
 			parameterCount++;
-			printf("Setting logfile = %s\n", argv[parameterCount]);
+			PRINT("Setting logfile = %s\n", argv[parameterCount]);
 			log_file = (char*)argv[parameterCount];
 		}
 		else
 		{
-			printf("Usage: %s [-p port] [-d] [-l logfile]\n", argv[0]);
-			printf("\t\t-p port\t\tWhich port to listen to.\n");
-			printf("\t\t-d\t\tEnables deamon mode.\n");
-			printf("\t\t-l logfile\tWhich file to store the log to.\n");
+			PRINT("Usage: %s [-p port] [-d] [-l logfile]\n", argv[0]);
+			PRINT("\t\t-p port\t\tWhich port to listen to.\n");
+			PRINT("\t\t-d\t\tEnables deamon mode.\n");
+			PRINT("\t\t-l logfile\tWhich file to store the log to.\n");
 			return -1;
 		}
 	}
 
-	printf("----Settings:\n");
-	printf("Port:\t\t\t%i\n", port);
-	printf("Server root:\t\t%s\n", wwwroot);
-	printf("Configuration file:\t%s\n", conf_file);
-	printf("Logfile:\t\t%s\n", log_file);
-	printf("Deamon:\t\t\t%i\n", deamon);
+	PRINT("----Settings:\n");
+	PRINT("Port:\t\t\t%i\n", port);
+	PRINT("Server root:\t\t%s\n", wwwroot);
+	PRINT("Configuration file:\t%s\n", conf_file);
+	PRINT("Logfile:\t\t%s\n", log_file);
+	PRINT("Deamon:\t\t\t%i\n", deamon);
 /*
 	if ( deamon == TRUE )
 	{
