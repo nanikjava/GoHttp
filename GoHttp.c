@@ -72,7 +72,7 @@ static void daemonize(void)
 	// freopen( "/dev/null", "w", stderr);
 }
 
-sendString(char *message, int socket)
+int sendString(char *message, int sociket)
 {
 	int length, bytes_sent;
 	length = strlen(message);
@@ -383,7 +383,8 @@ int handleHttpGET(char *input)
 
 			strcpy(path, wwwroot);
 
-			strcat(path, filename);			
+			strcat(path, filename);		
+			printf("opening %s\n ",path);
 
 			fp = fopen(path, "rb");
 
@@ -420,6 +421,8 @@ int handleHttpGET(char *input)
 
 			// Send File Content //
 			sendHeader("200 OK", mime,contentLength, connecting_socket);
+
+printf("Sending file");
 
 			sendFile(fp, contentLength);
 
@@ -497,18 +500,25 @@ int receive(int socket)
 
 	if ( request == 1 )				// GET
 	{
+		printf("handleHttpGET\n");
+
 		handleHttpGET(buffer);
 	}
 	else if ( request == 2 )		// HEAD
 	{
+				printf(" request == 2 \n");
+
 		// SendHeader();
 	}
 	else if ( request == 0 )		// POST
 	{
+		printf(" request == 0\n ");
 		sendString("501 Not Implemented\n", connecting_socket);
 	}
 	else							// GARBAGE
 	{
+				printf(" 400 Bad Request\n");
+
 		sendString("400 Bad Request\n", connecting_socket);
 	}
 
@@ -609,14 +619,22 @@ void acceptConnection()
 
 void start()
 {
+	printf("createSocket starting\n");
+	
 	createSocket();
+		printf("createSocket started\n");
 
+
+printf("bindSocket\n");
 	bindSocket();
+
+printf("startListener\n");
 
 	startListener();
 
 	while ( 1 )
 	{
+		printf("acceptConnection\n");
 		acceptConnection();
 	}
 }
@@ -635,9 +653,9 @@ void init()
 	mime_file = malloc(600);
 
 	// Setting default values
-	conf_file = "httpd.conf";
+	conf_file = "/system/etc/httpd.conf";
 	log_file = ".log";
-	strcpy(mime_file, "mime.types");
+	strcpy(mime_file, "/system/etc/mime.types");
 
 	// Set deamon to FALSE
 	deamon = FALSE;
@@ -712,18 +730,18 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	printf("Settings:\n");
+	printf("----Settings:\n");
 	printf("Port:\t\t\t%i\n", port);
 	printf("Server root:\t\t%s\n", wwwroot);
 	printf("Configuration file:\t%s\n", conf_file);
 	printf("Logfile:\t\t%s\n", log_file);
 	printf("Deamon:\t\t\t%i\n", deamon);
-
+/*
 	if ( deamon == TRUE )
 	{
 		daemonize();
 	}
-
+*/
 	start();
 
 	return 0;
