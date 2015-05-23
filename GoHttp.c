@@ -358,8 +358,7 @@ int handleHttpGET(char *input)
 
 			if ( GetExtension(filename, extension) == -1 )
 			{
-				PRINT("File extension not existing");
-
+				PRINT("error processing extension for file %s", filename);
 				sendString("400 Bad Request\n", connecting_socket);
 
 				free(filename);
@@ -376,7 +375,6 @@ int handleHttpGET(char *input)
 			if ( mimeSupported != 1)
 			{
 				PRINT("Mime not supported");
-
 				sendString("400 Bad Request\n", connecting_socket);
 
 				free(filename);
@@ -430,7 +428,7 @@ int handleHttpGET(char *input)
 			// Send File Content //
 			sendHeader("200 OK", mime,contentLength, connecting_socket);
 
-PRINT("Sending file");
+			PRINT("Sending file to client");
 
 			sendFile(fp, contentLength);
 
@@ -508,25 +506,18 @@ int receive(int socket)
 
 	if ( request == 1 )				// GET
 	{
-		PRINT("handleHttpGET\n");
-
 		handleHttpGET(buffer);
 	}
 	else if ( request == 2 )		// HEAD
 	{
-				PRINT(" request == 2 \n");
-
 		// SendHeader();
 	}
 	else if ( request == 0 )		// POST
 	{
-		PRINT(" request == 0\n ");
 		sendString("501 Not Implemented\n", connecting_socket);
 	}
 	else							// GARBAGE
 	{
-				PRINT(" 400 Bad Request\n");
-
 		sendString("400 Bad Request\n", connecting_socket);
 	}
 
@@ -627,16 +618,8 @@ void acceptConnection()
 
 void start()
 {
-	PRINT("createSocket starting\n");
-	
 	createSocket();
-		PRINT("createSocket started\n");
-
-
-PRINT("bindSocket\n");
 	bindSocket();
-
-PRINT("startListener\n");
 
 	startListener();
 
