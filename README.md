@@ -31,3 +31,6 @@ You can open httpd.conf and change the following:
 
 #Credit
 If it weren't for the course in Advance UNIX Programming that I took at Blekinge Institute of Technology I would never have written this. It all originated from a question on [StackOverflow](http://stackoverflow.com/questions/409087/creating-a-web-server-in-pure-c) from 2009 where I asked for information on how to write a simple web server in C.
+
+#Android
+The master-android-patch contains changes that will allow GoHttp application to be run inside Android. This is used as part of article for ODROID Magazine June edition
