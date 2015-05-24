@@ -2,7 +2,6 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_SRC_FILES :=  GoHttp.c
-LOCAL_LDLIBS += -lrt -ldl -lpthread -llog
 LOCAL_CFLAGS := -DDEBUG_ANDROID
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_MODULE := gohttp
